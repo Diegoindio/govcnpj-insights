@@ -1,0 +1,12 @@
+# Node / Cypress
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# Cypress artifacts
+cypress/screenshots/
+cypress/videos/
+cypress/downloads/
+
+# VSCode
+.vscode/
