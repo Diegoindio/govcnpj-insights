@@ -1,4 +1,5 @@
 const { defineConfig } = require("cypress");
+const allureWriter = require('@shelex/cypress-allure-plugin/writer');
 
 module.exports = defineConfig({
   e2e: {
@@ -7,8 +8,8 @@ module.exports = defineConfig({
     fixturesFolder: "cypress-tests/fixtures",
     supportFile: "cypress-tests/support/e2e.js",
     setupNodeEvents(on, config) {
-      require('cypress-allure-plugin/writer')(on, config);
-      return config;
+    allureWriter(on, config);
+            return config;
     },
     env: {
       allure: true,
