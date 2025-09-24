@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "properties": {
+    "cnpj": { "type": "string" },
+    "razao_social": { "type": "string" },
+    "nome_fantasia": { "type": ["string", "null"] },
+    "descricao_situacao_cadastral": { "type": "string" },
+    "data_situacao_cadastral": { "type": ["string", "null"] },
+    "cnae_fiscal": { "type": ["string", "number", "null"] },
+    "cnae_fiscal_descricao": { "type": ["string", "null"] },
+    "cep": { "type": ["string", "null"] },
+    "uf": { "type": ["string", "null"] },
+    "municipio": { "type": ["string", "null"] },
+    "bairro": { "type": ["string", "null"] },
+    "logradouro": { "type": ["string", "null"] },
+    "numero": { "type": ["string", "null"] },
+    "complemento": { "type": ["string", "null"] }
+  },
+  "required": ["cnpj", "razao_social", "descricao_situacao_cadastral"],
+  "additionalProperties": true
+}

@@ -7,6 +7,7 @@ module.exports = defineConfig({
     specPattern: "cypress-tests/e2e/**/*.cy.js",
     fixturesFolder: "cypress-tests/fixtures",
     supportFile: "cypress-tests/support/e2e.js",
+    retries: { runMode: 2, openMode: 0 },
     setupNodeEvents(on, config) {
     allureWriter(on, config);
             return config;

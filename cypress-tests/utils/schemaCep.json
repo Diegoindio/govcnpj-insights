@@ -1,0 +1,26 @@
+{
+  "type": "object",
+  "properties": {
+    "cep": { "type": "string" },
+    "state": { "type": "string" },
+    "city": { "type": "string" },
+    "neighborhood": { "type": ["string", "null"] },
+    "street": { "type": ["string", "null"] },
+    "service": { "type": "string" },
+    "location": {
+      "type": ["object", "null"],
+      "properties": {
+        "type": { "type": ["string", "null"] },
+        "coordinates": {
+          "type": ["object", "null"],
+          "properties": {
+            "latitude": { "type": ["number", "string", "null"] },
+            "longitude": { "type": ["number", "string", "null"] }
+          }
+        }
+      }
+    }
+  },
+  "required": ["cep", "state", "city", "service"],
+  "additionalProperties": true
+}
