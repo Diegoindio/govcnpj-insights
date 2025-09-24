@@ -1,3 +1,5 @@
+![Cypress](https://github.com/diegoindio/govcnpj-insights/actions/workflows/cypress.yml/badge.svg)
+
 # govcnpj-insights
 
  🏛️  Projeto de automação de testes com **Cypress** para validar a **API pública BrasilAPI (dados Gov.br)**.  

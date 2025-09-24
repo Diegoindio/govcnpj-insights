@@ -15,3 +15,5 @@
 
 // Import commands.js using ES2015 syntax:
 import './commands'
+import 'cypress-allure-plugin';
+require('cypress-plugin-tab');
