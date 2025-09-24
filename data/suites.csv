@@ -1,2 +1,2 @@
 "DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
-"","338","retorna 200 para CNPJ válido","","Wed Sep 24 03:10:24 UTC 2025","passed","Wed Sep 24 03:10:24 UTC 2025","","Smoke API - BrasilAPI CNPJ","",""
+"","309","retorna 200 para CNPJ válido","","Wed Sep 24 03:19:09 UTC 2025","passed","Wed Sep 24 03:19:09 UTC 2025","","Smoke API - BrasilAPI CNPJ","",""
