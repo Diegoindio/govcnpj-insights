@@ -1,0 +1,68 @@
+name: Cypress
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: write   # necessário para publicar no gh-pages
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install deps
+        run: npm ci || npm i
+
+      - name: Run Cypress
+        uses: cypress-io/github-action@v6
+        with:
+          spec: "cypress-tests/e2e/**/*.cy.js"
+
+      - name: Generate Allure Report
+        run: |
+          npx allure generate ./allure-results --clean -o ./allure-report
+          # cria .nojekyll para evitar problemas com diretórios que começam com underscore
+          touch ./allure-report/.nojekyll
+
+      - name: Upload Allure Results (artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-results
+          path: allure-results
+
+      - name: Upload Allure HTML (artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report
+
+  deploy-pages:
+    needs: e2e
+    if: ${{ needs.e2e.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Baixa o relatório gerado no job anterior
+      - name: Download Allure Report artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-report
+          path: allure-report
+
+      # Publica no branch gh-pages
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: allure-report
+          publish_branch: gh-pages

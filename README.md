@@ -1,5 +1,9 @@
 ![Cypress](https://github.com/diegoindio/govcnpj-insights/actions/workflows/cypress.yml/badge.svg)
 
+🔎 **Allure Report (última execução da main):**  
+https://diegoindio.github.io/govcnpj-insights/
+
+
 # govcnpj-insights
 
  🏛️  Projeto de automação de testes com **Cypress** para validar a **API pública BrasilAPI (dados Gov.br)**.  
