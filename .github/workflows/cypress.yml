@@ -4,16 +4,16 @@ on:
   push:
     branches: [ main ]
   schedule:
-    - cron: "0 3 * * *"   # Nightly às 03:00 UTC
+    - cron: "0 3 * * *"     # Nightly às 03:00 UTC
   workflow_dispatch:
 
-# permissões exigidas pelo deploy-pages
+# permissões necessárias para deploy com deploy-pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# evita deploys concorrentes para Pages
+# evita deploys concorrentes para o mesmo destino
 concurrency:
   group: "pages"
   cancel-in-progress: true
@@ -46,25 +46,31 @@ jobs:
       - name: Run Cypress (smoke only)
         run: npx cypress run --env allure=true,grepTags=smoke
         env:
-          NODE_OPTIONS: ""   # neutraliza --loader herdado
+          NODE_OPTIONS: ""   # neutraliza possíveis --loader herdados
 
       - name: Generate Allure
         run: |
           npm run allure:generate
           touch allure-report/.nojekyll
         env:
-          NODE_OPTIONS: ""
+          NODE_OPTIONS: ""   # garante geração limpa
+
+      # Falha cedo se a pasta do report não existir (feedback claro)
+      - name: Verify Allure report exists
+        run: |
+          test -d allure-report && echo "Allure report OK" || (echo "Allure report not found" && exit 1)
 
       - name: Upload allure artifact
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
           path: allure-report
+          if-no-files-found: error
 
   deploy-pages:
     name: Deploy Allure to GitHub Pages
     needs: smoke
-    if: ${{ github.ref == 'refs/heads/main' }}
+    if: ${{ needs.smoke.result == 'success' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -72,12 +78,20 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: allure-report
+          path: ./allure-report        # <- garante a pasta esperada
+
+      - name: Inspect downloaded files (debug)
+        run: |
+          echo "PWD: $(pwd)"
+          ls -la
+          echo "--- allure-report ---"
+          ls -la ./allure-report || true
 
       # publica o conteúdo baixado para a branch gh-pages
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: allure-report
+          path: ./allure-report        # <- publica exatamente essa pasta
 
       - name: Deploy to Pages
         id: deployment
@@ -114,8 +128,13 @@ jobs:
         env:
           NODE_OPTIONS: ""
 
+      - name: Verify Allure report exists
+        run: |
+          test -d allure-report && echo "Allure report OK" || (echo "Allure report not found" && exit 1)
+
       - name: Upload allure artifact
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
           path: allure-report
+          if-no-files-found: error
