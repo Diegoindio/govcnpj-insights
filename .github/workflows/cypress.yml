@@ -7,6 +7,17 @@ on:
     - cron: "0 3 * * *"   # Nightly às 03:00 UTC
   workflow_dispatch:
 
+# permissões exigidas pelo deploy-pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# evita deploys concorrentes para Pages
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
 jobs:
   smoke:
     name: Smoke (tags=smoke)
@@ -23,10 +34,6 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
 
-      # evita erro do --loader que algumas libs transitivas injetam via NODE_OPTIONS
-      - name: Clear NODE_OPTIONS (evita erro do --loader)
-        run: echo "NODE_OPTIONS=" >> $GITHUB_ENV
-
       - name: Install deps
         run: npm ci
 
@@ -38,11 +45,15 @@ jobs:
 
       - name: Run Cypress (smoke only)
         run: npx cypress run --env allure=true,grepTags=smoke
+        env:
+          NODE_OPTIONS: ""   # neutraliza --loader herdado
 
       - name: Generate Allure
         run: |
           npm run allure:generate
           touch allure-report/.nojekyll
+        env:
+          NODE_OPTIONS: ""
 
       - name: Upload allure artifact
         uses: actions/upload-artifact@v4
@@ -55,12 +66,6 @@ jobs:
     needs: smoke
     if: ${{ github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Download allure artifact
@@ -68,6 +73,7 @@ jobs:
         with:
           name: allure-report
 
+      # publica o conteúdo baixado para a branch gh-pages
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -93,19 +99,20 @@ jobs:
           cache: 'npm'
           cache-dependency-path: package-lock.json
 
-      - name: Clear NODE_OPTIONS (evita erro do --loader)
-        run: echo "NODE_OPTIONS=" >> $GITHUB_ENV
-
       - name: Install deps
         run: npm ci
 
       - name: Run Cypress (full suite)
         run: npx cypress run --env allure=true
+        env:
+          NODE_OPTIONS: ""
 
       - name: Generate Allure
         run: |
           npm run allure:generate
           touch allure-report/.nojekyll
+        env:
+          NODE_OPTIONS: ""
 
       - name: Upload allure artifact
         uses: actions/upload-artifact@v4
