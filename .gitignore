@@ -1,12 +1,17 @@
-# Node / Cypress
+# Node
 node_modules/
-npm-debug.log*
 package-lock.json
 
 # Cypress artifacts
 cypress/screenshots/
 cypress/videos/
-cypress/downloads/
 
-# VSCode
+# Allure
+allure-results/
+allure-report/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.idea/
 .vscode/

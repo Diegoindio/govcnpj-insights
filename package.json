@@ -8,11 +8,11 @@
     "cy:run": "cypress run",
     "allure:gen": "allure generate ./allure-results --clean -o ./allure-report",
     "ui-regression-allure": "cypress run --browser chrome --spec cypress-tests/e2e/**.js --env allure=true",
-    "allure:clear": "rm -r allure-results/ allure-report cypress/screenshots || true",
     "allure:report": "allure generate allure-results --clean -o allure-report",
     "allure:history": "mv -f allure-report/history allure-results/history && rm -r allure-report || true",
     "test": "npm run cy:run && npm run allure:gen",
-  "cy:spec": "cypress run --spec",
+    "cy:spec": "cypress run --spec",
+    "allure:clear": "rm -r allure-results/ allure-report cypress/screenshots || true",
     "allure:generate": "allure generate ./allure-results --clean -o ./allure-report",
     "allure:open": "allure open ./allure-report"
   },
@@ -20,8 +20,10 @@
   "author": "Diego Gomes",
   "license": "ISC",
   "devDependencies": {
+    "@cypress/grep": "^5.0.0",
     "@shelex/cypress-allure-plugin": "^2.41.2",
     "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
     "allure-commandline": "^2.34.1",
     "cypress": "^15.3.0"
   }
