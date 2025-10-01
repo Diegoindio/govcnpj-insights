@@ -3,23 +3,23 @@ name: Cypress
 on:
   push:
     branches: [ main ]
-  schedule:
-    - cron: "0 3 * * *"     # Nightly às 03:00 UTC
   workflow_dispatch:
+  schedule:
+    # 03:00 UTC diariamente (ajuste se quiser)
+    - cron: '0 3 * * *'
 
-# permissões necessárias para deploy com deploy-pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# evita deploys concorrentes para o mesmo destino
 concurrency:
-  group: "pages"
+  group: pages
   cancel-in-progress: true
 
 jobs:
   smoke:
+    if: ${{ github.event_name != 'schedule' }}
     name: Smoke (tags=smoke)
     runs-on: ubuntu-latest
 
@@ -35,36 +35,23 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: Install deps
-        run: npm ci
-
-      - name: Show versions
-        run: |
-          node -v
-          npm -v
-          npx cypress --version
+        run: npm ci || npm i
 
       - name: Run Cypress (smoke only)
-        run: npx cypress run --env allure=true,grepTags=smoke
         env:
-          NODE_OPTIONS: ""   # neutraliza possíveis --loader herdados
-
-      - name: Generate Allure
+          CYPRESS_VIDEO: "false"
         run: |
-          npm run allure:generate
-          touch allure-report/.nojekyll
-        env:
-          NODE_OPTIONS: ""   # garante geração limpa
+          npx cypress run --env allure=true,grepTags=smoke
 
-      # Falha cedo se a pasta do report não existir (feedback claro)
-      - name: Verify Allure report exists
+      - name: Generate Allure report
         run: |
-          test -d allure-report && echo "Allure report OK" || (echo "Allure report not found" && exit 1)
+          npx allure-commandline generate allure-results --clean -o allure-report
 
       - name: Upload allure artifact
         uses: actions/upload-artifact@v4
         with:
           name: allure-report
-          path: allure-report
+          path: ./allure-report
           if-no-files-found: error
 
   deploy-pages:
@@ -72,26 +59,24 @@ jobs:
     needs: smoke
     if: ${{ needs.smoke.result == 'success' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Download allure artifact
         uses: actions/download-artifact@v4
         with:
           name: allure-report
-          path: ./allure-report        # <- garante a pasta esperada
+          path: ./allure-report
 
-      - name: Inspect downloaded files (debug)
-        run: |
-          echo "PWD: $(pwd)"
-          ls -la
-          echo "--- allure-report ---"
-          ls -la ./allure-report || true
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
 
-      # publica o conteúdo baixado para a branch gh-pages
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./allure-report        # <- publica exatamente essa pasta
+          path: ./allure-report
 
       - name: Deploy to Pages
         id: deployment
@@ -114,27 +99,15 @@ jobs:
           cache-dependency-path: package-lock.json
 
       - name: Install deps
-        run: npm ci
+        run: npm ci || npm i
 
-      - name: Run Cypress (full suite)
-        run: npx cypress run --env allure=true
+      - name: Run Cypress (full)
         env:
-          NODE_OPTIONS: ""
-
-      - name: Generate Allure
+          CYPRESS_VIDEO: "false"
         run: |
-          npm run allure:generate
-          touch allure-report/.nojekyll
-        env:
-          NODE_OPTIONS: ""
+          # roda a suíte completa (sem grep)
+          npx cypress run --env allure=true
 
-      - name: Verify Allure report exists
+      - name: Generate Allure report (nightly)
         run: |
-          test -d allure-report && echo "Allure report OK" || (echo "Allure report not found" && exit 1)
-
-      - name: Upload allure artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-report
-          path: allure-report
-          if-no-files-found: error
+          npx allure-commandline generate allure-results --clean -o allure-report
